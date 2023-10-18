@@ -19,10 +19,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useModal } from "@/hooks/use-modal-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -35,13 +35,11 @@ const formSchema = z.object({
   }),
 });
 
-const InitialModal = () => {
-  const [isMounted, setIsMounted] = useState(false);
+const ServerModal = () => {
+  const { isOpen, onClose, type } = useModal();
   const router = useRouter();
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isModalOpen = isOpen && type === "createServer";
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -59,22 +57,24 @@ const InitialModal = () => {
       form.reset();
       router.refresh();
       window.location.reload();
+      onClose();
     } catch (error) {
       console.log(error);
     }
     console.log(values);
   };
 
-  if (!isMounted) {
-    return null;
-  }
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  };
 
   return (
-    <Dialog open>
+    <Dialog open={isModalOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-white text-black p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
-            Customize your service
+            Customize your server
           </DialogTitle>
           <DialogDescription className="text-center text-zinc-500">
             Give your server a personality with a name and an image. You can
@@ -84,7 +84,7 @@ const InitialModal = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="space-y-8 px-6">
-              <div className="flex items-center text-center justify-center">
+              <div className="flex items-center justify-center text-center">
                 <FormField
                   control={form.control}
                   name="imageUrl"
@@ -135,4 +135,4 @@ const InitialModal = () => {
   );
 };
 
-export default InitialModal;
+export default ServerModal;
